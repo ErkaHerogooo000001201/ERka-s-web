@@ -1,0 +1,6 @@
+{
+  "name": "Erka's Web Hub",
+  "description": "Эрхэмбаярын дүүтэйгээ хамт бүтээсэн дулаан өнгөт веб сан: 14 JS бодлого, Anime & Sport Guess тоглоом, Firestore Leaderboard, Хувийн танилцуулга, Мөрөөдлийн ажил ба YouTube видео хаб.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

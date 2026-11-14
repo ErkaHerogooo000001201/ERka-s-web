@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidScore(data) {
+      return data.keys().hasAll(['name', 'score', 'game', 'mode', 'date', 'createdAt', 'uid']) &&
+             data.keys().hasOnly(['name', 'score', 'game', 'mode', 'date', 'createdAt', 'uid']) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 40 &&
+             data.score is int && data.score >= 0 && data.score <= 5000 &&
+             data.game is string && data.game.size() >= 5 && data.game.size() <= 30 &&
+             data.game in ['Anime Guess', 'Sport Guess'] &&
+             data.mode is string && data.mode.size() >= 4 && data.mode.size() <= 20 &&
+             data.mode in ['Classic', 'Timed', 'Hard'] &&
+             data.date is string && data.date.size() >= 8 && data.date.size() <= 40 &&
+             data.createdAt is timestamp && data.createdAt == request.time &&
+             data.uid is string && isValidId(data.uid) &&
+             ((isVerifiedUser() && data.uid == request.auth.uid) || (!isVerifiedUser() && data.uid == 'guest'));
+    }
+
+    // Health check document for boot connection check
+    match /test/connection {
+      allow get: if true;
+    }
+
+    // Scores Leaderboard Collection
+    match /scores/{scoreId} {
+      allow get: if isValidId(scoreId) &&
+        existing().game in ['Anime Guess', 'Sport Guess'];
+
+      allow list: if request.query.limit != null &&
+        request.query.limit <= 100 &&
+        existing().score >= 0;
+
+      allow create: if isValidId(scoreId) &&
+        isValidScore(incoming());
+
+      allow update: if false;
+
+      allow delete: if isVerifiedUser() &&
+        isValidId(scoreId) &&
+        existing().uid == request.auth.uid;
+    }
+  }
+}

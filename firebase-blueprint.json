@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "Score": {
+      "title": "Score",
+      "description": "Game score record submitted after finishing Anime Guess or Sport Guess.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Player display name entered when the game ends.",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "score": {
+          "type": "integer",
+          "description": "Final points achieved in the game round."
+        },
+        "game": {
+          "type": "string",
+          "description": "Which game was played.",
+          "enum": ["Anime Guess", "Sport Guess"],
+          "minLength": 5,
+          "maxLength": 30
+        },
+        "mode": {
+          "type": "string",
+          "description": "Selected difficulty or challenge mode.",
+          "enum": ["Classic", "Timed", "Hard"],
+          "minLength": 4,
+          "maxLength": 20
+        },
+        "date": {
+          "type": "string",
+          "description": "ISO date string representing when the score was recorded.",
+          "minLength": 8,
+          "maxLength": 40
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of score submission."
+        },
+        "uid": {
+          "type": "string",
+          "description": "Authenticated Firebase UID of the player, or 'guest' when submitted without signing in.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        }
+      },
+      "required": ["name", "score", "game", "mode", "date", "createdAt", "uid"]
+    }
+  },
+  "firestore": {
+    "/scores/{scoreId}": {
+      "schema": {
+        "$ref": "#/entities/Score"
+      },
+      "description": "Public game leaderboard scores sorted by score descending for Anime Guess and Sport Guess."
+    }
+  }
+}
